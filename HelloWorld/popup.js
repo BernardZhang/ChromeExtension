@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   var checkPageButton = document.getElementById('checkPage');
+
   checkPageButton.addEventListener('click', function() {
 
     chrome.tabs.getSelected(null, function(tab) {
@@ -18,4 +19,16 @@ document.addEventListener('DOMContentLoaded', function() {
       f.submit();
     });
   }, false);
+
+  $(checkPageButton).on('click', function (e) {
+    $.ajax({
+      url: 'http://google.com',
+      type: 'GET'
+    }).complete(function (response) {
+      console.log(arguments);
+      // $(document.body).append(response);
+      // alert(1);
+    });
+
+  });
 }, false);

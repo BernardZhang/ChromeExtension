@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WebRequest Api</title>
+    <script src="jquery.js"></script>
+    <script src="popup.js"></script>
+
+    <style>
+		.request-list {
+			list-style: none;
+		}
+
+		.request-list li {
+			line-height: 30px;
+		}
+
+		.request-list li > span:first-child {
+			border: 1px solid #ddd;
+		}
+    </style>
+  </head>
+  <body>
+    <h1>WebRequest Api</h1>
+    <button id="sendRequest" style="display: none;">sendRequest</button>
+    <button id="clear-list">Clear List</button>
+    <ul id="requests-list" class="request-list"></ul>
+  </body>
+</html>
