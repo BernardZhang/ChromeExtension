@@ -1,89 +1,44 @@
-chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-  console.log(sender.tab ?
-              "from a content script:" + sender.tab.url :
-              "from the extension");
-  alert(sender.tab);
-  if (request.greeting == "hello") {
-    sendResponse({farewell: "goodbye"});
-  } else {
-    sendResponse({}); // snub them.
-  }
-});
-
-var getRequests = function () {
-  var requests = localStorage.getItem('requests');
-
-  if (requests) {
-    requests = JSON.parse(requests);
-  } else {
-    requests = [];
-    localStorage.setItem('requests', JSON.stringify(requests));
-  }
-
-  return requests;
-};
-var addRequest = function (request) {
-  var requests = getRequests();
-  requests.push(request);
-  localStorage.setItem('requests', JSON.stringify(requests));
-};
-var setRequests = function (requests) {
-  localStorage.setItem('requests', JSON.stringify(requests));
-};
-var clearRequests = function () {
-  localStorage.removeItem('requests');
-};
-
-var renderList = function (dom, requests) {
-  if (dom && dom.length) {
+// this port is available as soon as popup is opened
+var popupPort = chrome.runtime.connect({name: 'POPUPCHANNEL'});
+var renderList = function (requests) {
     var lists = requests.map(function (item) {
       return '<li><span>' + item.method + '</span><span>' + item.url + '</span></li>';
     }).join('');
-    dom.html(lists);
-  }
+    $('#requests-list').html(lists);
 };
 
-var callback = function (request) {
-    console.log(request);
-    addRequest(request);
-    renderList($('#requests-list'), getRequests());
-};
-var optFilter = {
-    urls: ['<all_urls>']
-  };
-var optExtraInfo = ["blocking"];
+// long-lived connection to the background channel 
+chrome.runtime.onConnect.addListener(function(port){
+  console.assert(port.name === 'BACKGROUNDCHANNEL');
+  console.log("Connected to background");
 
-chrome.webRequest.onBeforeRequest.addListener(callback, optFilter, optExtraInfo);
+  port.onMessage.addListener(function(data) {
+    console.log("Received message from popup", data);
+    renderList(data.msg);
 
-renderList($('#requests-list'), getRequests());
-
-// document.addEventListener('DOMContentLoaded', function() {
-  
-  var requestList = $('#requests-list');
-  // var callback = function (request) {
-  //   console.log(request);
-  //   addRequest(request);
-  //   renderList(getRequests());
-  // };
- 
-  // var optFilter = {
-  //   urls: ['<all_urls>']
-  // };
-  // var optExtraInfo = ["blocking"];
-
-  // chrome.webRequest.onBeforeRequest.addListener(callback, optFilter, optExtraInfo);
-
-
-
-  renderList(requestList, getRequests());
-
-
-  var clearBtn = $('#clear-list');
-
-  clearBtn.on('click', function () {
-    clearRequests();
-    renderList(requestList, getRequests());
+    // localStorage.setItem("Received message from popup", JSON.stringify(msg));
   });
+
+});
+
+chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+                "from a content script:" + sender.tab.url :
+                "from the extension");
+    if (request.greeting == "hello")
+      sendResponse({farewell: "goodbye"});
+    else
+      sendResponse({}); // snub them.
+});
+
+$('#clear-list').on('click', function () {
+  renderList([]);
+  popupPort.postMessage({
+    action: 'clearRequests'
+  });
+});
+
+
 
   
 // }, false);

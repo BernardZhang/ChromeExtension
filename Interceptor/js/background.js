@@ -652,6 +652,7 @@ function addClassForRequest(methods) {
 // notifies when popup can start listening
 chrome.runtime.onConnect.addListener(function(port){
   console.assert(port.name === 'POPUPCHANNEL');
+  console.log(':)' + port.name);
   BackgroundPort = chrome.runtime.connect({name: 'BACKGROUNDCHANNEL'});
   popupConnected = true;
 

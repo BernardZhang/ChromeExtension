@@ -9,17 +9,22 @@
 function Deque(N) {
   this._maxlength = N;
   this.items = new Array();
+  localStorage.setItem('items', JSON.stringify(this.items));
   this.clear = function() {
       this.items = [];
+      localStorage.removeItem('items');
   }
 }
 
 Deque.prototype.dequeue = function() {
-  return this.items.pop();
+  var item = this.items.pop();
+  localStorage.setItem('items', JSON.stringify(this.items));
+  return item;
 }
 
 Deque.prototype.push = function(item) {
   this.items.unshift(item);
+  localStorage.setItem('items', JSON.stringify(this.items));
   if (this.items.length > this._maxlength) {
     this.dequeue();
   }
