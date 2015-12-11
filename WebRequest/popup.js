@@ -38,7 +38,18 @@ $('#clear-list').on('click', function () {
   });
 });
 
+$('#requests-list').on('click', 'li', function (e) {
+  var target = $(e.currentTarget);
+  var url = target.find('span:nth-child(2)').text();
+  var method = target.find('span:nth-child(1)').text();
 
+  $[method.toLowerCase()](url).complete(function (response) {
+    var responseText = response.responseText;
 
-  
-// }, false);
+    try {
+      $('#response').html('<pre>' + JSON.stringify(JSON.parse(responseText), null, 4) + '</pre>');
+    } catch (e) {
+      $('#response').html(responseText);
+    }
+  });
+});

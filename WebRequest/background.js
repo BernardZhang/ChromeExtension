@@ -1,6 +1,7 @@
 var backgroundPort;
 var poupPort = false;
 var tabId = 0;
+var requestObj = {};
 var store = {
 	getRequests: function () {
 		var requests = localStorage.getItem('requests');
@@ -18,9 +19,11 @@ var store = {
 		localStorage.setItem('requests', JSON.stringify(requests));
 	},  
 	addRequest: function (request) {
-		var requests = this.getRequests();
-		requests.unshift(request);
-		localStorage.setItem('requests', JSON.stringify(requests));
+		if (!/^chrome\-extension:\/\//gi.test(request.url)) {
+			var requests = this.getRequests();
+			requests.unshift(request);
+			localStorage.setItem('requests', JSON.stringify(requests));	
+		}
 	},
 	removeReqeust: function () {
 
@@ -58,7 +61,39 @@ chrome.runtime.onMessageExternal.addListener(onExternalMessage);
 // 监听请求发出前事件
 chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {
 	urls: ['<all_urls>']
-}, [ 'blocking' ]);
+}, [ 'blocking', 'requestBody' ]);
+
+chrome.webRequest.onBeforeSendHeaders.addListener(onBeforeSendHeaders, {
+	urls: ['<all_urls>']
+}, [ 'requestHeaders', 'blocking' ]);
+
+chrome.webRequest.onSendHeaders.addListener(onSendHeaders, {
+	urls: ['<all_urls>']
+}, [ 'requestHeaders' ]);
+
+chrome.webRequest.onHeadersReceived.addListener(onHeadersReceived, {
+	urls: ['<all_urls>']
+}, [ 'blocking', 'responseHeaders' ]);
+
+chrome.webRequest.onAuthRequired.addListener(onAuthRequired, {
+	urls: ['<all_urls>']
+}, [ 'responseHeaders', 'blocking'/*, 'asyncBlocking'*/ ]);
+
+chrome.webRequest.onBeforeRedirect.addListener(onBeforeRedirect, {
+	urls: ['<all_urls>']
+}, [ 'responseHeaders' ]);
+
+chrome.webRequest.onResponseStarted.addListener(onResponseStarted, {
+	urls: ['<all_urls>']
+}, [ 'responseHeaders' ]);
+
+chrome.webRequest.onCompleted.addListener(onCompleted, {
+	urls: ['<all_urls>']
+}, [ 'responseHeaders' ]);
+
+chrome.webRequest.onErrorOccurred.addListener(onErrorOccurred, {
+	urls: ['<all_urls>']
+});
 
 chrome.tabs.getSelected(null, function(tab) {
 	tabId = tab.id;
@@ -84,7 +119,63 @@ function onBeforeRequest(request) {
 		});	
 	}
 
+	return { cancel: false };
+
 	// chrome.tabs.sendRequest(tabId, {greeting: "hello"}, function(response) {
 	//     console.log(response);
 	// });
 }
+
+function onBeforeSendHeaders(request) {
+	console.log('onBeforeSendHeaders', request);
+	delete request.requestHeaders['User-Agent'];
+    return {requestHeaders: request.requestHeaders};
+}
+
+function onSendHeaders(request) {
+	console.log('onSendHeaders', request);
+}
+
+function onHeadersReceived(request) {
+	console.log('onHeadersReceived', request);
+}
+
+function onAuthRequired(request) {
+	console.log('onAuthRequired', request);
+}
+
+function onBeforeRedirect(request) {
+	console.log('onBeforeRedirect', request);
+}
+
+function onResponseStarted(request) {
+	console.log('onResponseStarted', request);
+}
+
+function onCompleted(request) {
+	console.log('onCompleted', request);
+}
+
+function onErrorOccurred(request) {
+	console.log('onErrorOccurred', request);
+}
+
+chrome.browserAction.onClicked.addListener(function(){
+    var url = chrome.extension.getURL("popup.html");
+    console.log("++++++++++" + url);
+    window.open(url, "fiddler_option_page");
+});
+// 
+// chrome.experimental.debugger.onEvent.addListener(function (param) {
+// 	console.log('=====================');
+// 	console.log(param);
+// });
+
+
+// chrome.devtools.network.onRequestFinished.addListener(function (param) {
+// 	console.log('=====================');
+// 	console.log(param);
+// });
+
+
+

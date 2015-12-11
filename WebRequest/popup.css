@@ -1,0 +1,25 @@
+.request-list {
+	list-style: none;
+	min-width: 300px;
+	margin: 0;
+	padding: 0;
+}
+
+.request-list li {
+	line-height: 30px;
+	cursor: pointer;
+	border-bottom: 1px solid #ddd;
+}
+
+.request-list li:hover,.request-list li.selected {
+	background-color: lightblue;
+}
+
+.request-list li > span:first-child {
+	border: 1px solid lightgreen;
+	margin-right: 10px;
+	background-color: #fff;
+	color: lightgreen;
+	padding: 0 5px;
+	border-radius: 2px;
+}
