@@ -51,5 +51,74 @@ $('#requests-list').on('click', 'li', function (e) {
     } catch (e) {
       $('#response').html(responseText);
     }
+    toggleDetailView(true);
   });
 });
+
+$('#detail-view .close-icon').on('click', toggleDetailView);
+
+$('#request-type-tabs li').on('click', filterRequestsByType);
+
+$('.filter-input').on('keyup', filterRequestsByKeywords);
+
+function filterRequestsByKeywords(e) {
+  var val = $(e.currentTarget).val(),
+      requests = getRequestsByKeywords(val);
+  console.log(requests);
+  renderList(requests);    
+}
+
+  
+
+function filterRequestsByType(e) {
+  var target = $(e.currentTarget),
+      type = target.data('type'),
+      requests = getRequestsByType(type);
+
+  target.siblings('li').removeClass('selected');
+  target.addClass('selected');
+
+  renderList(requests);
+  console.log(requests);
+  var obj = {};
+  requests.forEach(function (item) {
+    obj[item.type] = true;
+  });
+
+  console.log(Object.keys(obj));
+}
+
+// types: ["other", "image", "xmlhttprequest", "script", "stylesheet", "main_frame", "sub_frame"]
+function getRequestsByType(type) {
+  var requests = JSON.parse(localStorage.getItem('requests'));
+
+  type = type ? type : 'all';
+  type = type === 'doc' ? ['main_frame', 'sub_frame'] : type;
+
+  return type === 'all' ? requests : requests.filter(function (item) {
+    if (type instanceof Array) {
+      return type.indexOf(item.type) > -1;
+    } else {
+      return item.type === type; 
+    }
+    
+  });
+}
+
+function getRequestsByKeywords(keyword) {
+  var requests = getRequestsByType();
+
+  if (keyword) {
+    return requests.filter(function (item) {
+      return new RegExp(keyword, 'gi').test(item.url);
+    });
+  }
+
+  return requests;
+}
+
+
+
+function toggleDetailView(visible) {
+  $('#detail-view').toggle(visible);
+}

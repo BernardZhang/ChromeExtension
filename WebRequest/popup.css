@@ -1,25 +1,94 @@
-.request-list {
+ul, li {
+	margin: 0;
+	padding: 0;
+}
+.main-content {
+	display: flex;
+}
+
+.toolbar {
+	list-style: none;
+	border-width: 1px 0;
+	border-style: solid;
+	border-color: #ddd;
+	height: 40px;
+	line-height: 40px;
+}
+
+.toolbar ul {
+	list-style: none;
+	border: 1px solid #ddd;
+	display: inline-block;
+	line-height: 21px;
+	margin-left: 10px;
+}
+
+.toolbar ul li {
+	min-width: 30px;
+	border-right: 1px solid #ddd;
+	display: inline-block;
+	text-align: center;
+	cursor: pointer;
+	padding: 0 5px;
+}
+
+.toolbar ul li:last-child {
+	border-right: 0;
+}
+
+.toolbar li.selected, .toolbar li:hover {
+	background: lightblue;
+}
+
+.list-view {
 	list-style: none;
 	min-width: 300px;
 	margin: 0;
 	padding: 0;
+	flex: 1;
+	border-right: 2px solid #ddd;
+	overflow-x: hidden;
+	padding: 10px;
 }
 
-.request-list li {
+.list-view li {
 	line-height: 30px;
 	cursor: pointer;
 	border-bottom: 1px solid #ddd;
 }
 
-.request-list li:hover,.request-list li.selected {
+.list-view li:hover,.list-view li.selected {
 	background-color: lightblue;
 }
 
-.request-list li > span:first-child {
+.list-view li > span:first-child {
 	border: 1px solid lightgreen;
 	margin-right: 10px;
 	background-color: #fff;
 	color: lightgreen;
 	padding: 0 5px;
 	border-radius: 2px;
+}
+
+.detail-view {
+	flex: 2;
+	display: none;
+	position: relative;
+	padding: 10px;
+}
+
+.detail-view .close-icon {
+	position: absolute;
+	right: 0;
+	top: 10px;
+	cursor: pointer;
+	border-radius: 50%;
+	border: 1px solid #ddd;
+    width: 15px;
+    height: 15px;
+    text-align: center;
+}
+
+.detail-view .close-icon:hover {
+	background: lightblue;
 }

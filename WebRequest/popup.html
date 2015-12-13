@@ -8,11 +8,24 @@
   <body>
     <h1>WebRequest Api</h1>
     <button id="sendRequest" style="display: none;">sendRequest</button>
-    <button id="clear-list">Clear List</button>
-    <ul id="requests-list" class="request-list"></ul>
-    <div id="response"></div>
+
+    <div class="toolbar">
+      <button id="clear-list">Clear List</button> 
+      <input placeholder="Filter" class="filter-input"> 
+      <ul id="request-type-tabs" class="request-type-tabs">
+        <li data-type="all" class="selected">All</li><li data-type="xmlhttprequest">XHR</li><li data-type="script">JS</li><li data-type="stylesheet">CSS</li><li data-type="image">Img</li><li data-type="doc">Doc</li><li data-type"other">Other</li>
+      </ul>
+    </div>
+
+    <div class="main-content">
+      <ul id="requests-list" class="list-view"></ul>
+      <div id="detail-view" class="detail-view">
+        <div id="response"></div>
+        <span id="close-detail-view" class="close-icon">X</span>
+      </div>
+    </div>
+    
     <script src="jquery.js"></script>
-    <!--script type="text/javascript" src="JSONUtil.js"></script-->
     <script src="popup.js"></script>
   </body>
 </html>
