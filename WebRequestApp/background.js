@@ -1,3 +1,7 @@
+chrome.app.runtime.onLaunched.addListener(function () {
+    chrome.app.window.create('index.html');
+});
+
 var backgroundPort;
 var poupPort = false;
 var tabId = 0;
@@ -32,6 +36,8 @@ var store = {
 		localStorage.removeItem('requests');
 	}
 };
+
+
 
 // 监听扩展连接事件
 chrome.runtime.onConnect.addListener(function (port) {
@@ -175,15 +181,6 @@ chrome.browserAction.onClicked.addListener(function(){
 // chrome.devtools.network.onRequestFinished.addListener(function (param) {
 // 	console.log('=====================');
 // 	console.log(param);
-// });
-
-// chrome.devtools.network.onRequestFinished.addListener(
-//     function(request) {
-//     	console.log('onRequestFinished');
-//       if (request.response.bodySize > 40*1024)
-//       chrome.experimental.devtools.console.addMessage(
-//           chrome.experimental.devtools.console.Severity.Warning,
-//           "Large image: " + request.request.url);
 // });
 
 

@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "Web request API APP",
+  "description": "Test Web request API APP",
+  "version": "1.0",
+  "app": {
+    "background": {
+      "scripts": [ "background.js" ]
+    }
+  },
+  "permissions": [
+   // "tabs",
+   // "activeTab",
+   // "webRequest",
+    // "webRequestBlocking",
+    "*://*/",
+    "socket": ["tcp-connect:*:*"]
+   ]
+}
