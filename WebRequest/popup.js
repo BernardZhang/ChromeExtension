@@ -2,7 +2,7 @@
 var popupPort = chrome.runtime.connect({name: 'POPUPCHANNEL'});
 var renderList = function (requests) {
     var lists = requests.map(function (item) {
-      return '<li><span>' + item.method + '</span><span>' + item.url + '</span></li>';
+      return '<li data-id="' + item.requestId + '""><span>' + item.method + '</span><span>' + item.url + '</span></li>';
     }).join('');
     $('#requests-list').html(lists);
 };
@@ -42,6 +42,7 @@ $('#requests-list').on('click', 'li', function (e) {
   var target = $(e.currentTarget);
   var url = target.find('span:nth-child(2)').text();
   var method = target.find('span:nth-child(1)').text();
+  var request = getRequestById(target.data('id'));
 
   $[method.toLowerCase()](url).complete(function (response) {
     var responseText = response.responseText;
@@ -49,7 +50,12 @@ $('#requests-list').on('click', 'li', function (e) {
     try {
       $('#response').html('<pre>' + JSON.stringify(JSON.parse(responseText), null, 4) + '</pre>');
     } catch (e) {
-      $('#response').html(responseText);
+      if (['main_frame', 'sub_frame'].indexOf(request.type) !== -1) {
+        $('#response').html('<iframe src="' + request.url +'"></iframe>');
+      } else {
+        $('#response').html(responseText);
+      }
+      
     }
     toggleDetailView(true);
   });
@@ -115,6 +121,12 @@ function getRequestsByKeywords(keyword) {
   }
 
   return requests;
+}
+
+function getRequestById(id) {
+  return getRequestsByType().filter(function (item) {
+    return item.requestId == id;
+  })[0];
 }
 
 
