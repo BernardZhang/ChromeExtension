@@ -1,15 +1,13 @@
 // this port is available as soon as popup is opened
 var popupPort = chrome.runtime.connect({name: 'POPUPCHANNEL'});
 var renderList = function (requests) {
-    var keyword = $('.filter-input').val(),
-        type = $('#request-type-tabs li.selected').data('type');
-
-    requests = !keyword && type === 'all' ? requests : getRequestsByType(type, keyword);
-    lists = requests.map(function (item) {
-        return '<li data-id="' + item.requestId + '""><span>' + item.method + '</span><span title="' +  item.url + '">' + item.url + '</span><span class="close-icon">X</span></li>';
+    var lists = requests.map(function (item) {
+        return '<li data-id="' + item.requestId + '""><span>' + item.method + '</span><span title="' +  item.url + '">' + item.url + '</span><span class="send-btn">Send</span><span class="close-icon">X</span></li>';
     }).join('');
     $('#requests-list').html(lists);
 };
+
+setReportDomain();
 
 // long-lived connection to the background channel 
 chrome.runtime.onConnect.addListener(function(port){
@@ -53,6 +51,61 @@ $('.filter-input').on('keyup', filterRequestsByKeywords);
 $('.detail-view-tabs li').on('click', switchDetailViewTab);
 
 $('.list-view').on('click', 'li .close-icon', deleteRequestAction);
+
+$('.list-view').on('click', '.send-btn', sendRequestAction);
+
+$('#report-domain').on('change', changeReportDomain);
+
+$('#method-type-select').on('change', changeHttpMethod);
+
+function changeHttpMethod(e) {
+    var method = $(e.currentTarget).val(),
+        type = $('#request-type-tabs li.selected').data('type'),
+        keywords = $('.filter-input').val();
+
+    renderList(getRequestsByFilter(type, keywords, method));
+}
+
+function setReportDomain(domain) {
+    domain = domain || localStorage.getItem('reportDomain') || '';
+    localStorage.setItem('reportDomain', domain);
+    $('#report-domain').val(domain);
+}
+
+function getReportDomain() {
+    return $('#report-domain').val();
+}
+
+function changeReportDomain(e) {
+    setReportDomain($(e.currentTarget).val());
+}
+
+function sendRequestAction(e) {
+    var target = $(e.currentTarget),
+        li = target.closest('li'),
+        requestId = li.data('id'),
+        request = getRequestById(requestId),
+        sendHost = getReportDomain(),
+        domainReg = /https{0,1}:\/\/[^\/]+(\/.*)*/gi,
+        newUrl = request.url.replace(domainReg, sendHost + '$1');
+
+    if (!domainReg.test(sendHost)) {
+        alert('请输入正确的域名,格式如: http://baidu.com');
+        return false;
+    }
+
+    $[request.method.toLowerCase()](newUrl).complete(function (response) {
+        var responseText = response.responseText;
+
+        try {
+            $('#response').html('<pre>' + JSON.stringify(JSON.parse(responseText), null, 4) + '</pre>');
+        } catch (e) {
+            $('#response').html(responseText);
+        }
+    });
+
+    e.stopPropagation();
+}
 
 function deleteRequestAction(e) {
     var target = $(e.currentTarget),
@@ -119,7 +172,8 @@ function renderResponse(request) {
 function filterRequestsByKeywords(e) {
   var val = $(e.currentTarget).val(),
       type = $('#request-type-tabs li.selected').data('type'),
-      requests = getRequestsByType(type, val);
+      method = $('#method-type-select').val(),
+      requests = getRequestsByFilter(type, val, method);
 
   console.log(requests);
   renderList(requests);    
@@ -129,7 +183,8 @@ function filterRequestsByType(e) {
   var target = $(e.currentTarget),
       type = target.data('type'),
       keyword = $('.filter-input').val(),
-      requests = getRequestsByType(type, keyword);
+      method = $('#method-type-select').val(),
+      requests = getRequestsByFilter(type, keyword, method);
 
   target.siblings('li').removeClass('selected');
   target.addClass('selected');
@@ -144,23 +199,49 @@ function filterRequestsByType(e) {
   console.log(Object.keys(obj));
 }
 
+function getRequests() {
+    return JSON.parse(localStorage.getItem('requests'));
+}
+
 // types: ["other", "image", "xmlhttprequest", "script", "stylesheet", "main_frame", "sub_frame"]
-function getRequestsByType(type, keyword) {
-  var requests = JSON.parse(localStorage.getItem('requests'));
+function getRequestsByFilter(type, keyword, method) {
+    var requests = getRequests();
+
+    type = type ? type : 'all';
+    type = type === 'doc' ? ['main_frame', 'sub_frame'] : type;
+    method = method || '';
+
+    if (type === 'all' && !keyword && !method) {
+        return requests
+    }
+
+    return requests.filter(function (item) {
+        var typeMatch = type instanceof Array ? type.indexOf(item.type) > -1 : (item.type === type || type === 'all'),
+            keywordMatch = keyword ? new RegExp(keyword, 'gi').test(item.url) : true,
+            methodMatch = method ? new RegExp(method, 'gi').test(item.method) : true;
+
+        return typeMatch && keywordMatch && methodMatch;
+    });
+}
+
+// types: ["other", "image", "xmlhttprequest", "script", "stylesheet", "main_frame", "sub_frame"]
+function getRequestsByType(type, keyword, method) {
+  var requests = getRequests();
 
   type = type ? type : 'all';
   type = type === 'doc' ? ['main_frame', 'sub_frame'] : type;
+  method = method || '';
 
-  return type === 'all' && !keyword ? requests : requests.filter(function (item) {
-      if (type instanceof Array) {
-          return type.indexOf(item.type) > -1 && (keyword ? new RegExp(keyword, 'gi').test(item.url) : true);
-      } else {
-        if (type === 'all') {
-            return keyword ? new RegExp(keyword, 'gi').test(item.url) : true;
-        } else {
-            return item.type === type && (keyword ? new RegExp(keyword, 'gi').test(item.url) : true);
-        }
-      }
+  if (type === 'all' && !keyword && !method) {
+      return requests
+  }
+
+  return requests.filter(function (item) {
+      var typeMatch = type instanceof Array ? type.indexOf(item.type) > -1 : (item.type === type || type === 'all'),
+          keywordMatch = keyword ? new RegExp(keyword, 'gi').test(item.url) : true,
+          methodMatch = method ? new RegExp(method, 'gi').test(item.method) : true;
+
+      return typeMatch && keywordMatch && methodMatch;
   });
 }
 

@@ -3,7 +3,7 @@ var poupPort = false;
 var tabId = 0;
 var requestObj = {};
 var store = {
-	maxLength: 1000,
+	maxLength: 10000,
 	getRequests: function () {
 		var requests = localStorage.getItem('requests');
 
@@ -11,19 +11,24 @@ var store = {
 			requests = JSON.parse(requests);
 		} else {
 		    requests = [];
-		    localStorage.setItem('requests', JSON.stringify(requests));
+		    store.setRequests(requests);
 		}
 
 		return requests;
 	},
 	setRequests: function (requests) {
-		localStorage.setItem('requests', JSON.stringify(requests.slice(0, Math.min(requests.length, store.maxLength))));
+		try {
+			localStorage.setItem('requests', JSON.stringify(requests.slice(0, Math.min(requests.length, store.maxLength))));
+		} catch (e) {
+			localStorage.setItem('requests', '');
+			console.warn(e);
+		}
 	},  
 	addRequest: function (request) {
 		if (!/^chrome\-extension:\/\//gi.test(request.url)) {
 			var requests = this.getRequests();
 			requests.unshift(request);
-			localStorage.setItem('requests', JSON.stringify(requests.slice(0, Math.min(requests.length, store.maxLength))));	
+			store.setRequests(requests);
 		}
 	},
 	findRequestById: function (requestId, callback) {

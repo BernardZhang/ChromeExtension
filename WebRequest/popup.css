@@ -4,7 +4,7 @@ html, body {
 	height: 100%;
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1,h2,h3,h4,h5,h6,pre {
 	margin: 0;
 	padding: 0;
 }
@@ -30,7 +30,7 @@ ul, li {
 	border-width: 1px 0;
 	border-style: solid;
 	border-color: #ddd;
-	height: 40px;
+	min-height: 40px;
 	line-height: 40px;
 }
 
@@ -106,6 +106,20 @@ ul, li {
     display: inline-block;
     overflow: hidden;
     text-overflow: ellipsis;	
+}
+
+.list-view li > .send-btn {
+	position: absolute;
+	top: 5px;
+	right: 30px;
+	border-radius: 2px;
+	border: 1px solid lightgreen;
+	display: inline-block;
+	padding: 0 5px;
+	cursor: pointer;
+	z-index: 9;
+	background-color: #fff;
+	line-height: 20px;
 }
 
 .detail-view {

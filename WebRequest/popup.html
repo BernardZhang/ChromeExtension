@@ -13,8 +13,20 @@
       <button id="clear-list">Clear List</button> 
       <input placeholder="Filter" class="filter-input"> 
       <ul id="request-type-tabs" class="request-type-tabs">
-        <li data-type="all" class="selected">All</li><li data-type="xmlhttprequest">XHR</li><li data-type="script">JS</li><li data-type="stylesheet">CSS</li><li data-type="image">Img</li><li data-type="doc">Doc</li><li data-type"other">Other</li>
+        <li data-type="all" class="selected">All</li><!--li data-type="restefull">RESTFULL</li--><li data-type="xmlhttprequest">XHR</li><li data-type="script">JS</li><li data-type="stylesheet">CSS</li><li data-type="image">Img</li><li data-type="doc">Doc</li><li data-type"other">Other</li>
       </ul>
+      <select id="method-type-select">
+        <option value="">All</option>
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+        <option value="PUT">PUT</option>
+        <option value="DELETE">DELETE</option>
+        <option value="OPTIONS">OPTIONS</option>
+        <option value="HEAD">HEAD</option>
+        <option value="TRACE">TRACE</option>
+        <option value="CONNECT">CONNECT</option>
+      </select>
+      <label>上报域名:</label><input id="report-domain" placeholder="上报域名">
     </div>
 
     <div class="main-content">
@@ -26,7 +38,7 @@
         </ul>
         <div class="detail-view-content">
           <ul id="header" class="requestheaders-list hide"></ul>
-          <div id="response" class="respnse-container"></div>
+          <div id="response" class="respnse-container" contenteditable="true"></div>
         </div>
         
         <span id="close-detail-view" class="close-icon">X</span>
