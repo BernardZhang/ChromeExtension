@@ -3,6 +3,7 @@ var poupPort = false;
 var tabId = 0;
 var requestObj = {};
 var store = {
+	maxLength: 1000,
 	getRequests: function () {
 		var requests = localStorage.getItem('requests');
 
@@ -16,17 +17,47 @@ var store = {
 		return requests;
 	},
 	setRequests: function (requests) {
-		localStorage.setItem('requests', JSON.stringify(requests));
+		localStorage.setItem('requests', JSON.stringify(requests.slice(0, Math.min(requests.length, store.maxLength))));
 	},  
 	addRequest: function (request) {
 		if (!/^chrome\-extension:\/\//gi.test(request.url)) {
 			var requests = this.getRequests();
 			requests.unshift(request);
-			localStorage.setItem('requests', JSON.stringify(requests));	
+			localStorage.setItem('requests', JSON.stringify(requests.slice(0, Math.min(requests.length, store.maxLength))));	
 		}
 	},
-	removeReqeust: function () {
+	findRequestById: function (requestId, callback) {
+		var requests = store.getRequests(),
+		    request = null;
 
+		for (var i = 0; i < requests.length; i++) {
+			if (requests[i].requestId === requestId.toString()) {
+				request = requests[i];
+				break;
+			}
+		}
+
+		if (request && callback && typeof callback === 'function') {
+			callback(request, requests, i);
+		} 
+
+		return request;
+	},
+	extendRequest: function (eventType, extendReq) {
+		extendReq[eventType + '_timeStamp'] = extendReq.timeStamp;
+		delete extendReq.timeStamp;
+
+		return store.findRequestById(extendReq.requestId, function (request, requests, index) {
+			$.extend(request, extendReq);
+			requests[index] = request;
+			store.setRequests(requests);
+		});
+	},
+	deleteRequest: function (requestId) {
+		store.findRequestById(requestId, function (request, requests, index) {
+			requests.splice(index, 1);
+			store.setRequests(requests);
+		});
 	},
 	clearRequests: function () {
 		localStorage.removeItem('requests');
@@ -40,13 +71,18 @@ chrome.runtime.onConnect.addListener(function (port) {
 	poupPort = true;
 
 	port.onMessage.addListener(function (msg) {
-		console.log('message from' + port.name, msg);
-		if (msg.action == 'clearRequests') {
+		switch (msg.action) {
+		case 'clearRequests':
 			store.clearRequests();
-			backgroundPort.postMessage({
-				msg: store.getRequests()
-			});
+			break;
+		case 'deleteRequest': 
+			store.deleteRequest(msg.requestId);
+			break;
 		}
+
+		backgroundPort.postMessage({
+			msg: store.getRequests()
+		});
 	});
 
 	backgroundPort.postMessage({
@@ -105,13 +141,17 @@ chrome.tabs.getSelected(null, function(tab) {
 	});
 });
 
+chrome.browserAction.onClicked.addListener(function(){
+    window.open(chrome.extension.getURL("popup.html"), "fiddler_option_page");
+});
+
 // responds to a message from postman - adds the XHR from postman to queue
 function onExternalMessage(request, sender, sendResponse) {
 	console.log('onExternalMessage');
 }
 
 function onBeforeRequest(request) {
-	console.log('onBeforeRequest', request);
+	console.log('1 onBeforeRequest', request);
 	if (poupPort) {
 		store.addRequest(request);
 		backgroundPort.postMessage({
@@ -127,64 +167,56 @@ function onBeforeRequest(request) {
 }
 
 function onBeforeSendHeaders(request) {
-	console.log('onBeforeSendHeaders', request);
+	console.log('2 onBeforeSendHeaders', request);
+	store.extendRequest('onBeforeSendHeaders', request);
 	delete request.requestHeaders['User-Agent'];
     return {requestHeaders: request.requestHeaders};
 }
 
 function onSendHeaders(request) {
-	console.log('onSendHeaders', request);
+	store.extendRequest('onSendHeaders', request);
+	console.log('3 onSendHeaders', request);
 }
 
 function onHeadersReceived(request) {
-	console.log('onHeadersReceived', request);
+	store.extendRequest('onHeadersReceived', request);
+	console.log('4 onHeadersReceived', request);
 }
 
 function onAuthRequired(request) {
-	console.log('onAuthRequired', request);
+	store.extendRequest('onAuthRequired', request);
+	console.log('5 onAuthRequired', request);
 }
 
 function onBeforeRedirect(request) {
-	console.log('onBeforeRedirect', request);
+	store.extendRequest('onBeforeRedirect', request);
+	console.log('6 onBeforeRedirect', request);
 }
 
 function onResponseStarted(request) {
-	console.log('onResponseStarted', request);
+	if (request) {
+		store.extendRequest('onResponseStarted', request);
+		console.log('7 onResponseStarted', request);
+	}	
 }
+	
 
 function onCompleted(request) {
-	console.log('onCompleted', request);
+	if (request) {
+		store.extendRequest('onCompleted', request);
+		console.log('8 onCompleted', request);
+	}
 }
 
 function onErrorOccurred(request) {
-	console.log('onErrorOccurred', request);
+	if (request) {
+		store.extendRequest('onErrorOccurred', request);
+		console.log('9 onErrorOccurred', request);
+	}
 }
 
-chrome.browserAction.onClicked.addListener(function(){
-    var url = chrome.extension.getURL("popup.html");
-    console.log("++++++++++" + url);
-    window.open(url, "fiddler_option_page");
-});
-// 
-// chrome.experimental.debugger.onEvent.addListener(function (param) {
-// 	console.log('=====================');
-// 	console.log(param);
-// });
 
 
-// chrome.devtools.network.onRequestFinished.addListener(function (param) {
-// 	console.log('=====================');
-// 	console.log(param);
-// });
-
-// chrome.devtools.network.onRequestFinished.addListener(
-//     function(request) {
-//     	console.log('onRequestFinished');
-//       if (request.response.bodySize > 40*1024)
-//       chrome.experimental.devtools.console.addMessage(
-//           chrome.experimental.devtools.console.Severity.Warning,
-//           "Large image: " + request.request.url);
-// });
 
 
 

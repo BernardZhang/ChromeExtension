@@ -1,9 +1,28 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+h1,h2,h3,h4,h5,h6 {
+	margin: 0;
+	padding: 0;
+}
 ul, li {
 	margin: 0;
 	padding: 0;
 }
+
+.title {
+	line-height: 50px;
+	text-align: center;
+}
+
 .main-content {
 	display: flex;
+	/*min-height: calc(100% - 90px);*/
+	height: calc(100% - 92px);
+	box-sizing: border-box;
 }
 
 .toolbar {
@@ -46,15 +65,25 @@ ul, li {
 	margin: 0;
 	padding: 0;
 	flex: 1;
-	border-right: 2px solid #ddd;
+	border-right: 1px solid #ddd;
 	overflow-x: hidden;
 	padding: 10px;
 }
 
 .list-view li {
 	line-height: 30px;
+	height: 30px;
 	cursor: pointer;
 	border-bottom: 1px solid #ddd;
+	position: relative;
+}
+
+.list-view li .close-icon {
+	display: none;
+}
+
+.list-view li:hover .close-icon {
+	display: block;
 }
 
 .list-view li:hover,.list-view li.selected {
@@ -68,27 +97,93 @@ ul, li {
 	color: lightgreen;
 	padding: 0 5px;
 	border-radius: 2px;
+	vertical-align: top;
+}
+
+.list-view li > span:nth-child(2) {
+	width: calc(100% - 60px);
+	height: 100%;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;	
 }
 
 .detail-view {
 	flex: 2;
 	display: none;
 	position: relative;
-	padding: 10px;
+	height: 100%;
+	/*padding: 10px;*/
 }
 
-.detail-view .close-icon {
+.detail-view-content {
+	padding: 10px;
+	box-sizing: border-box;
+	overflow-y: auto;
+	height: calc(100% - 40px); 
+}
+
+.detail-view .close-icon,
+.list-view .close-icon {
 	position: absolute;
-	right: 0;
-	top: 10px;
+	right: 5px;
+	top: 7px;
 	cursor: pointer;
 	border-radius: 50%;
 	border: 1px solid #ddd;
     width: 15px;
     height: 15px;
     text-align: center;
+    line-height: 15px;
+    box-sizing: border-box;
 }
 
 .detail-view .close-icon:hover {
 	background: lightblue;
+}
+
+.detail-view-tabs {
+	list-style: none;
+	border-bottom: 1px solid #ddd;
+	line-height: 30px;
+}
+
+.detail-view-tabs li {
+	display: inline-block;
+	/*border-right: 1px solid #ddd;*/
+	padding: 0 5px;
+	cursor: pointer;
+}
+
+.detail-view-tabs li:hover,
+.detail-view-tabs li.selected {
+	background-color: lightblue;
+}
+
+.detail-view-tabs li:last-child {
+	border-right: none;
+}
+
+.requestheaders-list {
+	list-style: none;
+}
+
+.requestheaders-list li {
+	line-height: 20px;
+	word-break: break-word;
+}
+
+.requestheaders-list li > span:first-child {
+	font-weight: bold;
+	margin-right: 10px;
+	display: inline-block;
+}
+
+.respnse-container {
+	height: 100%;
+}
+
+.respnse-container iframe {
+	width: 100%;
+	height: 100%;
 }

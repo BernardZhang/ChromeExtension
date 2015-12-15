@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="popup.css">
   </head>
   <body>
-    <h1>WebRequest Api</h1>
+    <h1 class="title">WebRequest Api</h1>
     <button id="sendRequest" style="display: none;">sendRequest</button>
 
     <div class="toolbar">
@@ -20,7 +20,15 @@
     <div class="main-content">
       <ul id="requests-list" class="list-view"></ul>
       <div id="detail-view" class="detail-view">
-        <div id="response"></div>
+        <ul class="detail-view-tabs">
+          <li data-href="#header">Headers</li>
+          <li data-href="#response">Response</li>
+        </ul>
+        <div class="detail-view-content">
+          <ul id="header" class="requestheaders-list hide"></ul>
+          <div id="response" class="respnse-container"></div>
+        </div>
+        
         <span id="close-detail-view" class="close-icon">X</span>
       </div>
     </div>
