@@ -11,26 +11,6 @@ setReportInputs();
 setCaptureFilter();
 
 
-// $(window).on('beforeunload', function () {
-//   localStorage.setItem('beforeunload', 'true');
-//   alert('beforeunload');
-  
-// });
-
-// $(window).on('unload', function () {
-//   localStorage.setItem('unload', 'true');
-//   alert('unload');
-  
-// });
-
-
-// $(window).on('close', function () {
-//   localStorage.setItem('close', 'true');
-//   alert('close');
-
-// });
-
-
 // long-lived connection to the background channel 
 chrome.runtime.onConnect.addListener(function(port){
   console.assert(port.name === 'BACKGROUNDCHANNEL');
@@ -182,7 +162,7 @@ function sendRequestAction(e) {
         matched = domainReg.exec(request.url);
 
     if (!sendHost/*!domainReg.test(sendHost)*/) {
-        alert('请输入上报的域名');
+        alert('请输入服务地址');
         return false;
     }
 
@@ -263,11 +243,62 @@ function selectRequestItem(e) {
 
 function renderRequestHeader(request) {
     var requestHeaders = request.requestHeaders || [],
-        headersHtml = requestHeaders.map(function (item) {
-            return '<li><span>' + item.name + ':</span><span>' + item.value + '</span></li>'
-        }).join('');
+        responseHeaders = request.responseHeaders || [],
+        requestBody = request.requestBody ? request.requestBody[request.requestBodyType] : '',
+        generateHeaderDetails = function (summary, headers) {
+            var content = '<ul>';
+            
+            headers.forEach(function (item) {
+                content += '<li><span>' + item.name + ':</span><span>' + item.value + '</span></li>';
+            });
 
-    $('#header').html(headersHtml);
+            content += '</ul>';
+
+            return [
+                '<details open>',
+                '  <summary>' + summary + '</summary>',
+                content,
+                '</details>'
+            ].join('');
+        },
+        generateRequestBody = function (request) {
+            var content = '',
+                requestBody = request.requestBody,
+                requestBodyData = {},
+                key = '';
+
+            if (requestBody) {
+                requestBodyData = requestBody[request.requestBodyType];
+
+                if (request.requestBodyType === 'formData') {
+                    for (key in requestBodyData) {
+                        content += key + ':' + JSON.stringify(requestBodyData[key]) + '\n';
+                    }
+                } else {
+                    try {
+                        content = JSON.stringify(JSON.parse(requestBodyData), null, 4);
+                    } catch (e) {
+                        content = requestBodyData;
+                    }
+                }
+
+                return '<details open><summary>Reqeust Body</summary><pre>' + content + '</pre></details>';
+            }
+
+            return '';
+        },
+        generalHtml = generateHeaderDetails('General', [
+            { name: 'Remote Address', value: request.ip },
+            { name: 'Request URL', value: request.url },
+            { name: 'Request Method', value: request.method },
+            { name: 'Status Code', value: request.statusCode }
+        ]),
+        requestHeaderssHtml = generateHeaderDetails('Reqeust Headers ( ' + requestHeaders.length + ')', requestHeaders),
+        responseHeadersHtml = generateHeaderDetails('Response Headers ( ' + responseHeaders.length + ')', responseHeaders),
+        requestBody = generateRequestBody(request);
+
+
+    $('#header').empty().append(generalHtml).append(requestHeaderssHtml).append(responseHeadersHtml).append(requestBody);
 }
 
 function renderResponse(request) {
@@ -298,9 +329,13 @@ function renderResponse(request) {
                     option.data = request.requestBody[request.requestBodyType] || '';
                 } else {
                     option.data = {};
-                    //  TODO  formdata 处理
+                    //  formdata 处理
                     for (key in request.requestBody[request.requestBodyType]) {
-                          option.data[key] = request.requestBody[request.requestBodyType][key][0];
+                        if (/\[\]$/.test(key)) {  // name[]这种形式
+                            option.data[key.substr(0, key.length - 2)] = request.requestBody[request.requestBodyType][key];
+                        } else {
+                            option.data[key] = request.requestBody[request.requestBodyType][key][0];
+                        }
                     }
                 }
                 
