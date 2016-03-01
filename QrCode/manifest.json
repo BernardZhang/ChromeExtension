@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+
+  "name": "QR Code",
+  "description": "Generate qrcode by the url",
+  "version": "1.0",
+  "browser_action": {
+   "default_icon": "qrcode.png",
+   "default_popup": "popup.html",
+   "default_title": "QRCode"
+  },
+  "permissions": [
+   "activeTab"
+   ]
+}
